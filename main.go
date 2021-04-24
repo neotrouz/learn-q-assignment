@@ -38,12 +38,13 @@ func main() {
 }
 
 func listingHandler(engine *gin.Engine, db *scribble.Driver) {
+
+	/*
+		Create Book
+	*/
 	engine.POST("/book", func(context *gin.Context) {
 		index := Index{}
-		err := db.Read("book", "index", &index)
-		if err != nil {
-			log.Fatalln("Error occured while load index", err)
-		}
+		err := db.Read("index", "data", &index)
 
 		index.LastId = index.LastId + 1
 		book := Book{
@@ -55,12 +56,12 @@ func listingHandler(engine *gin.Engine, db *scribble.Driver) {
 
 		err = db.Write("book", strconv.Itoa(index.LastId), book)
 		if err != nil {
-			log.Fatalln("Error occured while create book", err)
+			fmt.Println("Error occured while create book", err)
 		}
 
-		err = db.Write("book", "index", index)
+		err = db.Write("index", "data", index)
 		if err != nil {
-			log.Fatalln("Error occured while save index", err)
+			fmt.Println("Error occured while save index", err)
 		}
 		context.JSON(http.StatusOK, gin.H{
 			"status": true,
@@ -68,10 +69,13 @@ func listingHandler(engine *gin.Engine, db *scribble.Driver) {
 		})
 	})
 
+	/*
+		List Book
+	*/
 	engine.GET("/book", func(context *gin.Context) {
 		records, err := db.ReadAll("book")
 		if err != nil {
-			log.Fatalln("Error occured while get list books", err)
+			fmt.Println("Error occured while get list books", err)
 		}
 
 		books := []Book{}
@@ -79,7 +83,7 @@ func listingHandler(engine *gin.Engine, db *scribble.Driver) {
 			foundBook := Book{}
 			err = json.Unmarshal([]byte(f), &foundBook)
 			if err != nil {
-				log.Fatalln("Error occured while loop", err)
+				fmt.Println("Error occured while loop", err)
 			}
 			books = append(books, foundBook)
 		}
@@ -90,12 +94,15 @@ func listingHandler(engine *gin.Engine, db *scribble.Driver) {
 		})
 	})
 
+	/*
+		Detail Book
+	*/
 	engine.GET("/book/:id", func(context *gin.Context) {
 		fmt.Println(context.Param("id"))
 		book := Book{}
 		err := db.Read("book", context.Param("id"), &book)
 		if err != nil {
-			log.Fatalln("Error occured while get book", err)
+			fmt.Println("Error occured while get book", err)
 		}
 		context.JSON(http.StatusOK, gin.H{
 			"status": true,
@@ -103,20 +110,21 @@ func listingHandler(engine *gin.Engine, db *scribble.Driver) {
 		})
 	})
 
+	/*
+		Update Book
+	*/
 	engine.PUT("/book/:id", func(context *gin.Context) {
 		id := context.Param("id")
 
 		book := Book{}
 		err := db.Read("book", id, &book)
 		if err != nil {
-			log.Fatalln("Error occured while get book", err)
+			fmt.Println("Error occured while get book", err)
 		}
 
-		book = Book{
-			Title:  context.PostForm("title"),
-			Code:   context.PostForm("code"),
-			Author: context.PostForm("author"),
-		}
+		book.Title = context.PostForm("title")
+		book.Code = context.PostForm("code")
+		book.Author = context.PostForm("author")
 
 		err = db.Write("book", id, book)
 		context.JSON(http.StatusOK, gin.H{
@@ -125,23 +133,33 @@ func listingHandler(engine *gin.Engine, db *scribble.Driver) {
 		})
 	})
 
+	/*
+		Delete Book
+	*/
 	engine.DELETE("/book/:id", func(context *gin.Context) {
 		id := context.Param("id")
 
+		status := true
 		book := Book{}
 		err := db.Read("book", id, &book)
 		if err != nil {
-			log.Fatalln("Error occured while delete book", err)
+			status = false
+			fmt.Println("Error occured while delete book", err)
 		}
 		err = db.Delete("book", id)
 		if err != nil {
-			log.Fatalln("Error occured while delete book", err)
+			status = false
+			fmt.Println("Error occured while delete book", err)
 		}
 		context.JSON(http.StatusOK, gin.H{
-			"status": true,
+			"status":  status,
+			"message": fmt.Sprint(err),
 		})
 	})
 
+	/*
+		404
+	*/
 	engine.NoRoute(func(context *gin.Context) {
 		context.JSON(http.StatusOK, gin.H{
 			"message": "Page Not Found",
