@@ -11,8 +11,8 @@
 				"method": "POST",
 				"header": [],
 				"body": {
-					"mode": "formdata",
-					"formdata": [
+					"mode": "urlencoded",
+					"urlencoded": [
 						{
 							"key": "title",
 							"value": "Fantastic Beasts and Where to Find Them",
@@ -27,6 +27,18 @@
 							"key": "author",
 							"value": "J.K. Rowling",
 							"type": "text"
+						},
+						{
+							"key": "publishYear",
+							"value": "1231",
+							"type": "text",
+							"disabled": true
+						},
+						{
+							"key": "country",
+							"value": "United Kingdom",
+							"type": "text",
+							"disabled": true
 						}
 					]
 				},
@@ -118,24 +130,37 @@
 		{
 			"name": "Update Book",
 			"request": {
-				"method": "PUT",
+				"method": "PATCH",
 				"header": [],
 				"body": {
-					"mode": "formdata",
-					"formdata": [
+					"mode": "urlencoded",
+					"urlencoded": [
 						{
 							"key": "title",
 							"value": "",
-							"type": "text"
+							"type": "text",
+							"disabled": true
 						},
 						{
 							"key": "code",
 							"value": "",
-							"type": "text"
+							"type": "text",
+							"disabled": true
 						},
 						{
 							"key": "author",
 							"value": "",
+							"type": "text",
+							"disabled": true
+						},
+						{
+							"key": "publishYear",
+							"value": "1993",
+							"type": "text"
+						},
+						{
+							"key": "country",
+							"value": "United Kingdom",
 							"type": "text"
 						}
 					]
@@ -153,7 +178,7 @@
 					"variable": [
 						{
 							"key": "id",
-							"value": "1"
+							"value": "2"
 						}
 					]
 				}
