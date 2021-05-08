@@ -8,7 +8,3 @@ type Book struct {
 	PublishYear *int    `form:"publishYear" json:"publish-year"`
 	Country     *string `form:"country,default=Indonesia" json:"country"`
 }
-
-type Index struct {
-	LastId int
-}

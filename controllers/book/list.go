@@ -1,27 +1,31 @@
 package book
 
 import (
-	"encoding/json"
+	"database/sql"
 	"fmt"
 	"github.com/gin-gonic/gin"
-	scribble "github.com/nanobox-io/golang-scribble"
 	"learn-q-assignment-1/model"
 	"net/http"
 )
 
-func List(db *scribble.Driver) gin.HandlerFunc {
+func List(db *sql.DB) gin.HandlerFunc {
 	return func(context *gin.Context) {
-		records, err := db.ReadAll("book")
-		if err != nil {
-			fmt.Println("Error occured while get list books", err)
+		result, err := db.Query(`SELECT * FROM book`)
+		if result == nil || err != nil {
+			fmt.Printf("Error occured while get list books: %v\n", err)
+			context.JSON(http.StatusUnprocessableEntity, gin.H{
+				"status":  false,
+				"message": "Error occured while get list books",
+			})
+			return
 		}
 
 		var books []model.Book
-		for _, f := range records {
+		for result.Next() {
 			var foundBook model.Book
-			err = json.Unmarshal([]byte(f), &foundBook)
+			err = result.Scan(&foundBook.ID, &foundBook.Title, &foundBook.Code, &foundBook.Author, &foundBook.PublishYear, &foundBook.Country)
 			if err != nil {
-				fmt.Println("Error occured while loop", err)
+				fmt.Printf("Error occured while loop: %v\n", err)
 			}
 			books = append(books, foundBook)
 		}

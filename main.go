@@ -1,8 +1,9 @@
 package main
 
 import (
+	"database/sql"
 	"github.com/gin-gonic/gin"
-	scribble "github.com/nanobox-io/golang-scribble"
+	_ "github.com/go-sql-driver/mysql"
 	"learn-q-assignment-1/controllers/book"
 	"log"
 	"net/http"
@@ -10,14 +11,15 @@ import (
 
 var (
 	engine *gin.Engine
-	db     *scribble.Driver
+	//db     *scribble.Driver
+	db *sql.DB
 )
 
 func init() {
 	engine = gin.Default()
 
 	var err error
-	db, err = scribble.New("db", nil)
+	db, err = sql.Open("mysql", "root@/learn-q_golang")
 	if err != nil {
 		log.Fatalln("Error occured connect DB", err)
 	}

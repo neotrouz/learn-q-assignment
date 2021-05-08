@@ -1,22 +1,24 @@
 package book
 
 import (
+	"database/sql"
 	"fmt"
 	"github.com/gin-gonic/gin"
-	scribble "github.com/nanobox-io/golang-scribble"
 	"learn-q-assignment-1/model"
 	"net/http"
 )
 
-func Update(db *scribble.Driver) gin.HandlerFunc {
+func Update(db *sql.DB) gin.HandlerFunc {
 	return func(context *gin.Context) {
 		id := context.Param("id")
 		fmt.Println(id)
 
 		var book model.Book
-		err := db.Read("book", id, &book)
+		result := db.QueryRow(`SELECT * FROM book WHERE ID = ?`, id)
+
+		err := result.Scan(&book.ID, &book.Title, &book.Code, &book.Author, &book.PublishYear, &book.Country)
 		if err != nil {
-			fmt.Println("Book not found", err)
+			fmt.Printf("Error occured while load book data: %v\n", err)
 			context.JSON(http.StatusNotFound, gin.H{
 				"status":  false,
 				"message": "Book not found",
@@ -32,9 +34,9 @@ func Update(db *scribble.Driver) gin.HandlerFunc {
 			return
 		}
 
-		err = db.Write("book", id, book)
+		_, err = db.Exec("UPDATE book SET title = ?, code = ?, author = ?, publishYear = ?, country = ? WHERE ID = ?", book.Title, book.Code, book.Author, book.PublishYear, book.Country, book.ID)
 		if err != nil {
-			fmt.Println("Error occured while update book", err)
+			fmt.Printf("Error occured while update book: %v\n", err)
 		}
 
 		context.JSON(http.StatusOK, gin.H{

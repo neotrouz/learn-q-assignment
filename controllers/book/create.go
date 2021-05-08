@@ -1,24 +1,17 @@
 package book
 
 import (
+	"database/sql"
 	"fmt"
 	"github.com/gin-gonic/gin"
-	scribble "github.com/nanobox-io/golang-scribble"
 	"learn-q-assignment-1/model"
 	"net/http"
-	"strconv"
 )
 
-func Create(db *scribble.Driver) gin.HandlerFunc {
+func Create(db *sql.DB) gin.HandlerFunc {
 	return func(context *gin.Context) {
-		index := model.Index{}
-		err := db.Read("index", "data", &index)
-
-		index.LastId = index.LastId + 1
-
 		var book model.Book
-		book.ID = index.LastId
-		if err = context.ShouldBind(&book); err != nil {
+		if err := context.ShouldBind(&book); err != nil {
 			context.JSON(http.StatusBadRequest, gin.H{
 				"status":  false,
 				"message": err.Error(),
@@ -26,15 +19,14 @@ func Create(db *scribble.Driver) gin.HandlerFunc {
 			return
 		}
 
-		err = db.Write("book", strconv.Itoa(index.LastId), book)
+		insert, err := db.Exec(`INSERT INTO book (title, code, author, publishYear, country) VALUES (?, ?, ?, ?, ?)`, book.Title, book.Code, book.Author, book.PublishYear, book.Country)
 		if err != nil {
-			fmt.Println("Error occured while create book", err)
+			fmt.Printf("Error occured while create book: %v\n", err)
 		}
 
-		err = db.Write("index", "data", index)
-		if err != nil {
-			fmt.Println("Error occured while save index", err)
-		}
+		lastID, _ := insert.LastInsertId()
+		book.ID = int(lastID)
+
 		context.JSON(http.StatusOK, gin.H{
 			"status": true,
 			"data":   book,
